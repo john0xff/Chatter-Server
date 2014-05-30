@@ -4,108 +4,186 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
-public class ChatterServer extends JFrame {
-    private static final long serialVersionUID = 1L;
-    private final int width = 640;
-    private final int height = 480;
+public class ChatterServer extends JFrame
+{
+	private static final long serialVersionUID = 1L;
+	private final int width = 640;
+	private final int height = 480;
 
-    private ServerSocket serverSocket;
-    private Socket connectionSocket;
+	// make sure that port is available
+	private int port;
 
-    // make sure that port is available
-    private int port;
+	// sockets
+	private ServerSocket serverSocket;
+	private Socket connectionSocket;
 
-    private JScrollPane scPane;
-    private JTextArea txtArea;
+	// streams
+	private ObjectOutputStream output;
+	private ObjectInputStream input;
 
-    public ChatterServer(int port) {
-	super("Chatter Server");
+	// components
+	private JScrollPane scrollPane;
+	private JTextArea chatArea;
+	private JTextField userText;
 
-	this.port = port;
+	private String message;
 
-	scPane = new JScrollPane(getTxtArea());
-	add(scPane, BorderLayout.CENTER);
+	public ChatterServer(int port)
+	{
+		super("Chatter Server");
 
-	frameSettings();
-	setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	setVisible(true);
-    }
+		this.port = port;
 
-    public void frameSettings() {
-	setSize(width, height);
-	Point centerPoint = GraphicsEnvironment.getLocalGraphicsEnvironment()
-		.getCenterPoint();
-	setLocation(100, (centerPoint.y) - (height / 2));
-    }
+		scrollPane = new JScrollPane(getChatArea());
+		add(scrollPane, BorderLayout.CENTER);
 
-    private JTextArea getTxtArea() {
-	txtArea = new JTextArea();
-	txtArea.setFont(new Font("Arial", 0, 20));
-	return txtArea;
-    }
+		add(getUserText(), BorderLayout.NORTH);
 
-    public void runServer() {
-	try {
-	    serverSocket = new ServerSocket(port);
-
-	    // InetAddress ip = Inet4Address.getLocalHost();
-
-	    connectionWait();
-
-	    txtArea.append("sending test" + "\n");
-
-	    byte[] b = new byte[10];
-	    byte ascii = 98;
-	    // ascii code
-	    for (int i = 0; i < b.length; i++) {
-		b[i] = ascii;
-		ascii++;
-	    }
-
-	    for (int i = 0; i < b.length; i++) {
-		connectionSocket.getOutputStream().write(b[i]);
-	    }
-
-	    closeSocket();
-
-	} catch (IOException e) {
-	    e.printStackTrace();
-	}
-    }
-
-    private void connectionWait() {
-	txtArea.append("waiting for connection" + "\n");
-	try {
-	    connectionSocket = serverSocket.accept();
-	} catch (IOException e) {
-	    e.printStackTrace();
+		frameSettings();
 	}
 
-	String hostName = connectionSocket.getInetAddress().getHostName();
-	// InetAddress ip = connectionSocket.getInetAddress();
-	txtArea.append("connected to " + hostName + "\n");
-    }
+	public void frameSettings()
+	{
+		setSize(width, height);
+		Point centerPoint = GraphicsEnvironment.getLocalGraphicsEnvironment().getCenterPoint();
+		setLocation(100, (centerPoint.y) - (height / 2));
 
-    private void closeSocket() {
-	try {
-	    connectionSocket.close();
-	} catch (IOException ioException) {
-	    ioException.printStackTrace();
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
 	}
-    }
 
-    public static void main(String[] args) {
+	private JTextArea getChatArea()
+	{
+		chatArea = new JTextArea();
+		chatArea.setFont(new Font("Arial", 0, 20));
+		return chatArea;
+	}
 
-	int port = 9002;
+	/** send server text to client and append server text to server chat area */
+	private JTextField getUserText()
+	{
+		userText = new JTextField();
+		userText.setFont(new Font("Arial", 0, 20));
 
-	new ChatterServer(port).runServer();
-    }
+		userText.addActionListener(new ActionListener()
+		{
+
+			@Override
+			public void actionPerformed(ActionEvent event)
+			{
+				String serverMessage = event.getActionCommand();
+
+				try
+				{
+					// send server text to client
+					output.writeObject("SERVER -  " + serverMessage);
+					output.flush();
+				}
+				catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+
+				// append server text to area
+				chatArea.append("\nSERVER - " + serverMessage);
+
+				userText.setText("");
+			}
+		});
+
+		return userText;
+	}
+
+	public void runServer()
+	{
+		try
+		{
+			serverSocket = new ServerSocket(port);
+			
+			// waiting until client is connected
+			clinetConnection();
+
+			// when client is connected set streams
+			output = new ObjectOutputStream(connectionSocket.getOutputStream());
+			output.flush();
+			input = new ObjectInputStream(connectionSocket.getInputStream());
+
+			do
+			{
+				// receive message form client side 
+				message = (String) input.readObject();
+				// append to server chat area
+				chatArea.append(message);
+			}
+			// EXIT is command to end chat
+			while (!message.equals("CLIENT - EXIT"));
+
+			closeSocket();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		catch (ClassNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private void clinetConnection()
+	{
+		chatArea.append("waiting for connection" + "\n");
+
+		try
+		{
+			// waiting until client is connected
+			connectionSocket = serverSocket.accept();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+
+		String hostName = connectionSocket.getInetAddress().getHostName();
+		// InetAddress ip = connectionSocket.getInetAddress();
+		chatArea.append("connected to " + hostName + "\n");
+	}
+
+	private void closeSocket()
+	{
+		try
+		{
+			connectionSocket.close();
+		}
+		catch (IOException ioException)
+		{
+			ioException.printStackTrace();
+		}
+	}
+
+	public static void main(String[] args)
+	{
+
+		int port = 9002;
+
+		
+		// create and show gui
+		ChatterServer server = new ChatterServer(port);
+		
+		
+		server.runServer();
+	}
 }
