@@ -18,6 +18,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+/** */
 public class ChatterServer extends JFrame
 {
 	private static final long serialVersionUID = 1L;
