@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -41,6 +42,7 @@ public class ChatterServer extends JFrame
 
 	private String message;
 	private final static String NEWLINE = "\n";
+	private final static String EXITCMD = "\nCLIENT - EXIT";
 
 	public ChatterServer(int port)
 	{
@@ -54,6 +56,7 @@ public class ChatterServer extends JFrame
 		add(getUserText(), BorderLayout.NORTH);
 
 		frameSettings();
+		runServer();
 	}
 
 	public void frameSettings()
@@ -90,7 +93,7 @@ public class ChatterServer extends JFrame
 				try
 				{
 					// send server text to client
-					output.writeObject(NEWLINE + "SERVER -  " + serverMessage);
+					output.writeObject(NEWLINE + "SERVER - " + serverMessage);
 					output.flush();
 				}
 				catch (IOException e)
@@ -113,7 +116,7 @@ public class ChatterServer extends JFrame
 		try
 		{
 			serverSocket = new ServerSocket(port);
-			
+
 			// waiting until client is connected
 			clinetConnection();
 
@@ -124,14 +127,14 @@ public class ChatterServer extends JFrame
 
 			do
 			{
-				// receive message form client side 
-				message = (String) input.readObject();
+				// receive message form client side
+				message = (String) input.readObject().toString();
 				// append to server chat area
 				chatArea.append(message);
 			}
-			// EXIT is command to end chat
-			while (!message.equals("CLIENT - EXIT"));
+			while (!message.equals(EXITCMD));
 
+			closeStreams();
 			closeSocket();
 		}
 		catch (IOException e)
@@ -158,9 +161,24 @@ public class ChatterServer extends JFrame
 			e.printStackTrace();
 		}
 
-		String hostName = connectionSocket.getInetAddress().getHostName();
+		InetAddress hostName = connectionSocket.getInetAddress();
 		// InetAddress ip = connectionSocket.getInetAddress();
 		chatArea.append("connected to " + hostName + NEWLINE);
+	}
+
+	private void closeStreams()
+	{
+		try
+		{
+			output.close();
+			input.close();
+		}
+		catch (IOException e)
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	private void closeSocket()
@@ -180,11 +198,7 @@ public class ChatterServer extends JFrame
 
 		int port = 9002;
 
-		
 		// create and show gui
-		ChatterServer server = new ChatterServer(port);
-		
-		
-		server.runServer();
+		new ChatterServer(port);
 	}
 }
