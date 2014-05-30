@@ -40,6 +40,7 @@ public class ChatterServer extends JFrame
 	private JTextField userText;
 
 	private String message;
+	private final static String NEWLINE = "\n";
 
 	public ChatterServer(int port)
 	{
@@ -89,7 +90,7 @@ public class ChatterServer extends JFrame
 				try
 				{
 					// send server text to client
-					output.writeObject("SERVER -  " + serverMessage);
+					output.writeObject(NEWLINE + "SERVER -  " + serverMessage);
 					output.flush();
 				}
 				catch (IOException e)
@@ -98,7 +99,7 @@ public class ChatterServer extends JFrame
 				}
 
 				// append server text to area
-				chatArea.append("\nSERVER - " + serverMessage);
+				chatArea.append(NEWLINE + "SERVER - " + serverMessage);
 
 				userText.setText("");
 			}
@@ -145,7 +146,7 @@ public class ChatterServer extends JFrame
 
 	private void clinetConnection()
 	{
-		chatArea.append("waiting for connection" + "\n");
+		chatArea.append("waiting for connection" + NEWLINE);
 
 		try
 		{
@@ -159,7 +160,7 @@ public class ChatterServer extends JFrame
 
 		String hostName = connectionSocket.getInetAddress().getHostName();
 		// InetAddress ip = connectionSocket.getInetAddress();
-		chatArea.append("connected to " + hostName + "\n");
+		chatArea.append("connected to " + hostName + NEWLINE);
 	}
 
 	private void closeSocket()
