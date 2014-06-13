@@ -24,7 +24,7 @@ import javax.swing.JTextField;
 /**
  * 
  * @author Bart Bien
- *
+ * 
  */
 public class ChatterServer extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -144,12 +144,13 @@ public class ChatterServer extends JFrame {
 		chatArea.append(message);
 	    } while (!message.equals(EXITCMD));
 
-	    closeStreams();
-	    closeSocket();
 	} catch (IOException e) {
 	    e.printStackTrace();
 	} catch (ClassNotFoundException e) {
 	    e.printStackTrace();
+	} finally {
+	    closeStreams();
+	    closeSocket();
 	}
     }
 
