@@ -30,7 +30,7 @@ import javax.swing.JTextField;
  * @author Bart Bien
  * 
  */
-public class ChatterServer extends JFrame
+public class ServerMainFrame extends JFrame
 {
 	private static final long serialVersionUID = -7609660477991900485L;
 	private final int width = 640;
@@ -38,14 +38,7 @@ public class ChatterServer extends JFrame
 
 	// make sure that port is available
 	private int port;
-
-	// sockets
-	private ServerSocket serverSocket;
-	private Socket connectionSocket;
-
-	// streams
-	private ObjectOutputStream output;
-	private ObjectInputStream input;
+	private ChatServer server;
 
 	// components
 	private JScrollPane scrollPane;
@@ -61,7 +54,7 @@ public class ChatterServer extends JFrame
 	private SimpleDateFormat dateFormat;
 	private String currentTime;
 
-	public ChatterServer(int port)
+	public ServerMainFrame(int port)
 	{
 		super("Chatter Server");
 
@@ -84,7 +77,7 @@ public class ChatterServer extends JFrame
 		setLocation(100, (centerPoint.y) - (height / 2));
 
 		// ImageIO.read(input)
-		ImageIcon img = new ImageIcon(ChatterServer.class.getResource("res/icoB.png"));
+		ImageIcon img = new ImageIcon(ServerMainFrame.class.getResource("res/icoB.png"));
 		setIconImage(img.getImage());
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -104,85 +97,104 @@ public class ChatterServer extends JFrame
 		userText = new JTextField();
 		userText.setFont(new Font("Arial", 0, 20));
 
-		userText.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent event)
-			{
-				String serverMessage = event.getActionCommand();
-
-				try
-				{
-					calendar = Calendar.getInstance();
-					currentTime = dateFormat.format(calendar.getTime());
-
-					// send server text to client
-					output.writeObject(NEWLINE + currentTime + " SERVER - " + serverMessage);
-					output.flush();
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-
-				// append server text to area
-				chatArea.append(NEWLINE + currentTime + " SERVER - " + serverMessage);
-
-				userText.setText("");
-			}
-		});
+//		userText.addActionListener(new ActionListener()
+//		{
+//			@Override
+//			public void actionPerformed(ActionEvent event)
+//			{
+//				String serverMessage = event.getActionCommand();
+//
+//				try
+//				{
+//					calendar = Calendar.getInstance();
+//					currentTime = dateFormat.format(calendar.getTime());
+//
+//					// send server text to client
+//					output.writeObject(NEWLINE + currentTime + " SERVER - " + serverMessage);
+//					output.flush();
+//				}
+//				catch (IOException e)
+//				{
+//					e.printStackTrace();
+//				}
+//
+//				// append server text to area
+//				chatArea.append(NEWLINE + currentTime + " SERVER - " + serverMessage);
+//
+//				userText.setText("");
+//			}
+//		});
 
 		return userText;
 	}
 
 	public void runServer()
 	{
+		this.server= new ChatServer();
+		this.server.setMessageReceivedEvent(new MessageReceivedEvent()
+		{
+			@Override
+			public void performEvent(String message)
+			{
+				chatArea.append(message);
+			}
+		});
+		
 		try
 		{
-			serverSocket = new ServerSocket(port);
-
-			// waiting until client is connected
-			clinetConnection();
-			performCommunication();
+			this.server.start(this.port);
 		}
-		catch (IOException | ClassNotFoundException e)
+		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
-		finally
-		{
-			closeStreams();
-			closeSockets();
-		}
+		
+//		try
+//		{
+//			serverSocket = new ServerSocket(port);
+//
+//			// waiting until client is connected
+//			clinetConnection();
+//			performCommunication();
+//		}
+//		catch (IOException | ClassNotFoundException e)
+//		{
+//			e.printStackTrace();
+//		}
+//		finally
+//		{
+//			closeStreams();
+//			closeSockets();
+//		}
 	}
 
 	private void clinetConnection() throws IOException
 	{
-		chatArea.append("waiting for connection" + NEWLINE);
-
-		// waiting until client is connected
-		connectionSocket = serverSocket.accept();
-
-		InetAddress hostName = connectionSocket.getInetAddress();
-		// InetAddress ip = connectionSocket.getInetAddress();
-		chatArea.append("connected to " + hostName + NEWLINE);
-		
-		// when client is connected set streams
-		output = new ObjectOutputStream(connectionSocket.getOutputStream());
-		// output.flush();
-		input = new ObjectInputStream(connectionSocket.getInputStream());
+//		chatArea.append("waiting for connection" + NEWLINE);
+//
+//		// waiting until client is connected
+//		connectionSocket = serverSocket.accept();
+//
+//		InetAddress hostName = connectionSocket.getInetAddress();
+//		// InetAddress ip = connectionSocket.getInetAddress();
+//		chatArea.append("connected to " + hostName + NEWLINE);
+//		
+//		// when client is connected set streams
+//		output = new ObjectOutputStream(connectionSocket.getOutputStream());
+//		// output.flush();
+//		input = new ObjectInputStream(connectionSocket.getInputStream());
 	}
 	
 	private void performCommunication() throws ClassNotFoundException, IOException
 	{
-		do
-		{
-			// receive message form client side
-			message = (String) input.readObject();
-			// append to server chat area
-			chatArea.append(message);
-		}
-		while (!message.equals(EXITCMD));
+//		do
+//		{
+//			// receive message form client side
+//			message = (String) input.readObject();
+//			// append to server chat area
+//			chatArea.append(message);
+//		}
+//		while (!message.equals(EXITCMD));
 	}
 
 	private void closeObject(Closeable object)
@@ -200,14 +212,14 @@ public class ChatterServer extends JFrame
 
 	private void closeStreams()
 	{
-		closeObject(input);
-		closeObject(output);
+//		closeObject(input);
+//		closeObject(output);
 	}
 
 	private void closeSockets()
 	{
-		closeObject(connectionSocket);
-		closeObject(serverSocket);
+//		closeObject(connectionSocket);
+//closeObject(serverSocket);
 	}
 
 	public static void main(String[] args)
@@ -216,6 +228,6 @@ public class ChatterServer extends JFrame
 		int port = 9002;
 
 		// create and show gui
-		new ChatterServer(port);
+		new ServerMainFrame(port);
 	}
 }
