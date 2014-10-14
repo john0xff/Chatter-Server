@@ -78,7 +78,6 @@ public class Communication
 	{
 		ServerUtils.closeObject(objectInputStream);
 		ServerUtils.closeObject(objectOutputStream);
-
 	}
 
 }

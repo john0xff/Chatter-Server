@@ -30,7 +30,7 @@ import javax.swing.JTextField;
  * @author Bart Bien
  *
  */
-public class ChatterServer extends JFrame
+public class ChatterServer extends JFrame implements Runnable
 {
 	private static final long serialVersionUID = -7609660477991900485L;
 
@@ -41,19 +41,35 @@ public class ChatterServer extends JFrame
 	private int port;
 	private ServerSocket serverSocket;
 	private Socket connectionSocket;
+	
+	private static int clientCounter = 0;
 
 	// all stuff related to communication between 1 instance of server and several clients
 	private Communication communication;
 
-	public ChatterServer(int port)
+	public ChatterServer()
 	{
 		super("Chatter Server");
-		this.port = port;
+		//this.port = port;
 
 		communication = new Communication();
 		add(communication.getJScrollPane(), BorderLayout.CENTER);
 		frameSettings();
-		runServer();
+		//runServer();
+	}
+
+	@Override
+	public void run()
+	{
+		
+	}
+	
+	public Runnable newClientConnection(Socket socket)
+	{
+		connectionSocket = socket;
+		clientCounter++;
+		
+		return this;
 	}
 
 	public void frameSettings()
@@ -71,10 +87,10 @@ public class ChatterServer extends JFrame
 		try
 		{
 			serverSocket = new ServerSocket(port);
-			
+
 			// waiting until client is connected
 			clinetConnection();
-			
+
 			// performCommunication();
 			communication.communicate();
 		}
@@ -98,9 +114,9 @@ public class ChatterServer extends JFrame
 
 		InetAddress hostName = connectionSocket.getInetAddress();
 		// InetAddress ip = connectionSocket.getInetAddress();
-		
+
 		communication.getChatArea().append("connected to " + hostName + communication.NEWLINE);
-		
+
 		// when client is connected set streams
 		communication.setupOutputStream(new ObjectOutputStream(connectionSocket.getOutputStream()));
 		communication.setupInputStream(new ObjectInputStream(connectionSocket.getInputStream()));
