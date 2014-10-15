@@ -15,24 +15,26 @@ public class Main
 		
 		ChatterServer server = new ChatterServer();
 		
-		try
-		{
-			ServerSocket serverSocket = new ServerSocket(port);
-			
-			while (true)
-			{
-				Socket clientSocket = serverSocket.accept();
-				Runnable runnable = server.newClientConnection(clientSocket); 
-				i++;
-				Thread thread = new Thread(runnable, "client thread nr - " + i);
-				thread.start();
-			}
-		}
-		catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// it need to has synchronized streams - input and output between up coming msg from clients
+		
+//		try
+//		{
+//			ServerSocket serverSocket = new ServerSocket(port);
+//			
+//			while (true)
+//			{
+//				Socket clientSocket = serverSocket.accept();
+//				Runnable runnable = server.newClientConnection(clientSocket); 
+//				i++;
+//				Thread thread = new Thread(runnable, "client thread nr - " + i);
+//				thread.start();
+//			}
+//		}
+//		catch (IOException e)
+//		{
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 		
 	
 		
