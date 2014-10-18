@@ -1,4 +1,5 @@
 package com.phoenixjcam.application.server;
+
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,6 +15,10 @@ import javax.swing.JTextField;
 
 public class ServerMulticonnection
 {
+	private ServerGUI serverGUI;
+	private final static String NEWLINE = "\n";
+	private final static String CLEAR = "";
+	
 	private int port;
 	private ServerSocket serverSocket;
 	private Socket clientSocket;
@@ -21,20 +26,14 @@ public class ServerMulticonnection
 	private ObjectOutputStream objectOutputStream;
 	private ObjectInputStream objectInputStream;
 
-	private JFrame frame;
-	private JTextField userText;
-	private JTextArea textArea;
-
 	public ServerMulticonnection(int port)
 	{
 		this.port = port;
 
-		frame = new JFrame("Server");
-
-		userText = new JTextField();
-		userText.addActionListener(new ActionListener()
+		serverGUI = new ServerGUI();
+		
+		serverGUI.getUserText().addActionListener(new ActionListener()
 		{
-
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
@@ -42,27 +41,18 @@ public class ServerMulticonnection
 
 				try
 				{
-					objectOutputStream.writeObject(msg);
-					textArea.append("Server: " + msg + "\n");
+					String serverMsg = serverGUI.currentTime() + " Server: " + msg + NEWLINE;// prepare full msg from server to display in both  
+					objectOutputStream.writeObject(serverMsg);
+					serverGUI.getTextArea().append(serverMsg);
+					serverGUI.getUserText().setText(CLEAR);
 				}
 				catch (IOException e1)
 				{
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 			}
 		});
-		userText.setEnabled(false);
-		frame.add(userText, BorderLayout.NORTH);
-
-		textArea = new JTextArea();
-		textArea.setEnabled(false);
-		frame.add(textArea, BorderLayout.CENTER);
-
-		frame.setSize(600, 400);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-
+		
 		while (true)
 		{
 			try
@@ -79,7 +69,7 @@ public class ServerMulticonnection
 			{
 				objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 				objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
-				userText.setEnabled(true);
+				serverGUI.getUserText().setEnabled(true);
 
 				String msg = null;
 				do
@@ -87,7 +77,7 @@ public class ServerMulticonnection
 					try
 					{
 						msg = objectInputStream.readObject().toString();
-						textArea.append("Client: " + msg + "\n");
+						serverGUI.getTextArea().append(msg);
 					}
 					catch (ClassNotFoundException e1)
 					{
@@ -95,37 +85,48 @@ public class ServerMulticonnection
 					}
 				}
 				while (!msg.equals("END"));
+				
+				serverGUI.getTextArea().append("Client dissconected by typing END." + NEWLINE);
 			}
 			catch (IOException e)
 			{
-				textArea.append("Client dissconected.");
-				System.out.println("Client dissconected.");
+				serverGUI.getTextArea().append("Client dissconected by pressing EXIT." + NEWLINE);
+				System.out.println("Client dissconected."); // for debug mode
 				e.printStackTrace();
 			}
 			finally
 			{
-				try
-				{
-					clientSocket.shutdownOutput();
-					clientSocket.shutdownInput();
-				}
-				catch (IOException e1)
-				{
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-
-				try
-				{
-					clientSocket.close();
-					serverSocket.close();
-				}
-				catch (IOException e1)
-				{
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				shutdownStreams();
+				closeSockets();
 			}
+		}
+	}
+
+	private void shutdownStreams()
+	{
+		try
+		{
+			clientSocket.shutdownOutput();
+			clientSocket.shutdownInput();
+			System.out.println("shutdownStreams"); // for debug mode
+		}
+		catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+	}
+
+	private void closeSockets()
+	{
+		try
+		{
+			clientSocket.close();
+			serverSocket.close();
+			System.out.println("closeSockets"); // for debug mode
+		}
+		catch (IOException e1)
+		{
+			e1.printStackTrace();
 		}
 	}
 
