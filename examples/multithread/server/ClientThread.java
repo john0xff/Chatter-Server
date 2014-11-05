@@ -76,6 +76,7 @@ class ClientThread extends Thread
 					if (threads[i] != null && threads[i] != this)
 					{
 						threads[i].os.println("*** A new user " + name + " entered the chat room !!! ***");
+						System.out.println("test");
 					}
 				}
 			}

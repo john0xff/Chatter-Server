@@ -65,6 +65,9 @@ public class MultiThreadChatServerSync
 					if (threads[i] == null)
 					{
 						(threads[i] = new ClientThread(clientSocket, threads)).start();
+						
+						System.out.println("start - next client");
+						
 						break;
 					}
 				}
