@@ -76,7 +76,7 @@ public class ServerClients extends Thread
 				String clientMsg = objectInputStream.readObject().toString();
 				
 				// break this loop and end of life of this thread
-				if(clientMsg.contains("end"))
+				if(clientMsg.contains("END"))
 					break;
 				
 				synchronized (this)
@@ -93,46 +93,71 @@ public class ServerClients extends Thread
 			}
 			
 			// if msg == end then close streams and socket on this thread
+			synchronized (this)
+			{
+				for (int i = 0; i < maxClientsCount; i++)
+				{
+					if (this.serverClients[i] != null && this.serverClients[i] != this && this.serverClients[i].clientName != null)
+					{
+						String preparedMsg = "The user " + name + " is leaving the chat room";
+						this.serverClients[i].objectOutputStream.writeObject(preparedMsg);
+					}
+				}
+			}
+			
+			synchronized (this)
+			{
+				for (int i = 0; i < maxClientsCount; i++)
+				{
+					if (this.serverClients[i] == this)
+					{
+						this.serverClients[i] = null;
+					}
+				}
+			}
 			
 		}
 		catch (IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		catch (ClassNotFoundException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+		finally
+		{
+			shutdownStreams();
+			closeSocket();
 		}
 		
 	}
 
-//	private void shutdownStreams()
-//	{
-//		try
-//		{
-//			clientSocket.shutdownOutput();
-//			clientSocket.shutdownInput();
-//			System.out.println("shutdownStreams"); // for debug mode
-//		}
-//		catch (IOException e1)
-//		{
-//			e1.printStackTrace();
-//		}
-//	}
-//
-//	private void closeSockets()
-//	{
-//		try
-//		{
-//			clientSocket.close();
-//
-//			System.out.println("closeSockets"); // for debug mode
-//		}
-//		catch (IOException e1)
-//		{
-//			e1.printStackTrace();
-//		}
-//	}
+	private void shutdownStreams()
+	{
+		try
+		{
+			clientSocket.shutdownOutput();
+			clientSocket.shutdownInput();
+			System.out.println("shutdown Streams"); // for debug mode
+		}
+		catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+	}
+
+	private void closeSocket()
+	{
+		try
+		{
+			clientSocket.close();
+
+			System.out.println("close Socket"); // for debug mode
+		}
+		catch (IOException e1)
+		{
+			e1.printStackTrace();
+		}
+	}
 }

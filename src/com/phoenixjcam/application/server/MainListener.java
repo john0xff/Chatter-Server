@@ -8,6 +8,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
@@ -39,15 +42,20 @@ public class MainListener
 		}
 		catch (IOException e)
 		{
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
+		serverClients = new ServerClients[maxClients];
+		
+		System.out.println(getCurrentTime() + " before accepting");
 
 		while (true)
 		{
 			try
 			{
 				clientSocket = serverSocket.accept();
+
+				System.out.println(getCurrentTime() + " accepted");
 
 				for (int i = 0; i < maxClients; i++)
 				{
@@ -67,6 +75,9 @@ public class MainListener
 
 	}
 
-	
+	public static String getCurrentTime()
+	{
+		return new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+	}
 
 }
