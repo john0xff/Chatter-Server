@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class ServerClients extends Thread
 {
@@ -11,43 +12,44 @@ public class ServerClients extends Thread
 	private ObjectInputStream objectInputStream;
 	private ObjectOutputStream objectOutputStream;
 	private Socket clientSocket;
-	
+
 	// each client = new Thread
 	private final ServerClients[] serverClients;
 	private int maxClientsCount;
-	
+
+	private boolean isOpen;
+
 	public ServerClients(Socket clientSocket, ServerClients[] clients)
 	{
 		this.clientSocket = clientSocket;
 		this.serverClients = clients;
 		this.maxClientsCount = clients.length;
 	}
-	
+
 	@Override
 	public void run()
 	{
 		int maxClientsCount = this.maxClientsCount;
 		ServerClients[] clients = this.serverClients;
 		String name;
-		
+
 		try
 		{
 			// setup streams for new client
 			objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 			objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
-			
+
 			// wait for name
-			while(true)
+			while (true)
 			{
 				objectOutputStream.writeObject("Enter name");
 				name = objectInputStream.readObject().toString();
 				break;
 			}
-			
+
 			// welcome new user
 			objectOutputStream.writeObject("Welcome " + name + " in our chat room");
-			
-			
+
 			synchronized (this)
 			{
 				// update client name
@@ -59,7 +61,7 @@ public class ServerClients extends Thread
 						break;
 					}
 				}
-				
+
 				// send to each of client update about new user
 				for (int i = 0; i < maxClientsCount; i++)
 				{
@@ -69,29 +71,38 @@ public class ServerClients extends Thread
 					}
 				}
 			}
-			
-			// read msg from this client and broadcast to other clients 
+
+			// read msg from this client and broadcast to other clients
 			while (true)
 			{
-				String clientMsg = objectInputStream.readObject().toString();
-				
-				// break this loop and end of life of this thread
-				if(clientMsg.contains("END"))
-					break;
-				
-				synchronized (this)
+				try
 				{
-					for (int i = 0; i < maxClientsCount; i++)
+					String clientMsg = objectInputStream.readObject().toString();
+
+					// break this loop and end of life of this thread
+					if (clientMsg.contains("END"))
+						break;
+
+					synchronized (this)
 					{
-						if (this.serverClients[i] != null && this.serverClients[i].clientName != null)
+						for (int i = 0; i < maxClientsCount; i++)
 						{
-							this.serverClients[i].objectOutputStream.writeObject("<" + name + "> " + clientMsg);
+							if (this.serverClients[i] != null && this.serverClients[i].clientName != null)
+							{
+								this.serverClients[i].objectOutputStream.writeObject("<" + name + "> " + clientMsg);
+							}
 						}
 					}
 				}
-				
+				// in case if user close window without saying BYE || END
+				catch (SocketException e)
+				{
+					isOpen = false;
+					break;
+				}
+
 			}
-			
+
 			// if msg == end then close streams and socket on this thread
 			synchronized (this)
 			{
@@ -104,7 +115,10 @@ public class ServerClients extends Thread
 					}
 				}
 			}
-			
+
+//			if(this.objectOutputStream != null)
+//				objectOutputStream.writeObject("BYE");
+
 			synchronized (this)
 			{
 				for (int i = 0; i < maxClientsCount; i++)
@@ -115,7 +129,7 @@ public class ServerClients extends Thread
 					}
 				}
 			}
-			
+
 		}
 		catch (IOException e)
 		{
@@ -130,7 +144,7 @@ public class ServerClients extends Thread
 			shutdownStreams();
 			closeSocket();
 		}
-		
+
 	}
 
 	private void shutdownStreams()
