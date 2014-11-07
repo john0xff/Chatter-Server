@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import javax.swing.JOptionPane;
+
 public class MainListener
 {
 	private ServerGUI serverGUI;
@@ -19,7 +21,9 @@ public class MainListener
 	public MainListener()
 	{
 		serverGUI = new ServerGUI();
-		int port = 9002;
+		String givenPort = JOptionPane.showInputDialog(serverGUI.getFrame(), "Type port (9002) or similar");
+
+		int port = Integer.valueOf(givenPort);
 
 		try
 		{
@@ -32,7 +36,7 @@ public class MainListener
 
 		serverClients = new ServerClients[maxClients];
 
-		serverMsg = Utils.getCurrentTime() + " before accepting";
+		serverMsg = Utils.getCurrentTime() + " before accepting" + " server port = " + port;
 		System.out.println(serverMsg);
 		serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
 
