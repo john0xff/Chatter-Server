@@ -19,7 +19,6 @@ import javax.swing.JTextField;
 
 public class ServerGUI
 {
-	// gui components  
 	private JFrame frame;
 	private JTextField userText;
 	private JScrollPane scrollPane;
