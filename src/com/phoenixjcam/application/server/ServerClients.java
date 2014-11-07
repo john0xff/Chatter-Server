@@ -8,6 +8,8 @@ import java.net.SocketException;
 
 public class ServerClients extends Thread
 {
+	private ServerGUI serverGUI;
+
 	private String clientName;
 	private ObjectInputStream objectInputStream;
 	private ObjectOutputStream objectOutputStream;
@@ -31,45 +33,54 @@ public class ServerClients extends Thread
 	{
 		int maxClientsCount = this.maxClientsCount;
 		ServerClients[] clients = this.serverClients;
-		String name;
+		String name = null;
 
 		try
 		{
 			// setup streams for new client
 			objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 			objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
-
-			// wait for name
-			while (true)
+			
+			try
 			{
-				objectOutputStream.writeObject("Enter name");
-				name = objectInputStream.readObject().toString();
-				break;
+				// wait for name
+				while (true)
+				{
+
+					objectOutputStream.writeObject("Enter name");
+					name = objectInputStream.readObject().toString();
+					break;
+				}
+
+				// welcome new user
+				objectOutputStream.writeObject("Welcome " + name + " in our chat room");
+				serverGUI.getTextArea().append("new user - " + name + Utils.NEWLINE); // update server frame
+
+				synchronized (this)
+				{
+					// update client name
+					for (int i = 0; i < maxClientsCount; i++)
+					{
+						if (this.serverClients[i] != null && this.serverClients[i] == this)
+						{
+							clientName = "@" + name;
+							break;
+						}
+					}
+
+					// send to each of client update about new user
+					for (int i = 0; i < maxClientsCount; i++)
+					{
+						if (this.serverClients[i] != null && this.serverClients[i] != this)
+						{
+							this.serverClients[i].objectOutputStream.writeObject("A new user " + name + " entered the chat room");
+						}
+					}
+				}
 			}
-
-			// welcome new user
-			objectOutputStream.writeObject("Welcome " + name + " in our chat room");
-
-			synchronized (this)
+			catch (SocketException e)
 			{
-				// update client name
-				for (int i = 0; i < maxClientsCount; i++)
-				{
-					if (this.serverClients[i] != null && this.serverClients[i] == this)
-					{
-						clientName = "@" + name;
-						break;
-					}
-				}
-
-				// send to each of client update about new user
-				for (int i = 0; i < maxClientsCount; i++)
-				{
-					if (this.serverClients[i] != null && this.serverClients[i] != this)
-					{
-						this.serverClients[i].objectOutputStream.writeObject("A new user " + name + " entered the chat room");
-					}
-				}
+				System.err.println("client in fase wait for name canceled connection");
 			}
 
 			// read msg from this client and broadcast to other clients
@@ -90,8 +101,12 @@ public class ServerClients extends Thread
 							if (this.serverClients[i] != null && this.serverClients[i].clientName != null)
 							{
 								this.serverClients[i].objectOutputStream.writeObject("<" + name + "> " + clientMsg);
+								serverGUI.getTextArea().append(name + ": " + clientMsg + Utils.NEWLINE); // update
+																											// server
+																											// frame
 							}
 						}
+						serverGUI.getTextArea().append("--------------------------------------------" + Utils.NEWLINE); 
 					}
 				}
 				// in case if user close window without saying BYE || END
@@ -116,8 +131,8 @@ public class ServerClients extends Thread
 				}
 			}
 
-//			if(this.objectOutputStream != null)
-//				objectOutputStream.writeObject("BYE");
+			// if(this.objectOutputStream != null)
+			// objectOutputStream.writeObject("BYE");
 
 			synchronized (this)
 			{
@@ -173,5 +188,10 @@ public class ServerClients extends Thread
 		{
 			e1.printStackTrace();
 		}
+	}
+
+	public void updateServerGUI(ServerGUI serverGUI)
+	{
+		this.serverGUI = serverGUI;
 	}
 }

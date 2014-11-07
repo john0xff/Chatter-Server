@@ -1,29 +1,11 @@
 package com.phoenixjcam.application.server;
 
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-
-import javax.swing.JFrame;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-
-import com.sun.org.apache.regexp.internal.recompile;
 
 public class MainListener
 {
-
-	private final static String NEWLINE = "\n";
-	private final static String CLEAR = "";
-
 	private ServerGUI serverGUI;
 
 	private static Socket clientSocket;
@@ -31,9 +13,12 @@ public class MainListener
 
 	private static ServerSocket serverSocket;
 	private static final int maxClients = 5;
+	
+	private String serverMsg;
 
-	public static void main(String[] args)
+	public MainListener()
 	{
+		serverGUI = new ServerGUI();
 		int port = 9002;
 
 		try
@@ -46,22 +31,34 @@ public class MainListener
 		}
 
 		serverClients = new ServerClients[maxClients];
-		
-		System.out.println(getCurrentTime() + " before accepting");
 
+		serverMsg = Utils.getCurrentTime() + " before accepting";
+		System.out.println(serverMsg);
+		serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
+
+		
+		
 		while (true)
 		{
 			try
 			{
 				clientSocket = serverSocket.accept();
 
-				System.out.println(getCurrentTime() + " accepted");
+				serverMsg = Utils.getCurrentTime() + " accepted";
+				System.out.println(serverMsg);
+				serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
 
 				for (int i = 0; i < maxClients; i++)
 				{
 					if (serverClients[i] == null)
 					{
 						(serverClients[i] = new ServerClients(clientSocket, serverClients)).start();
+						serverClients[i].updateServerGUI(serverGUI);
+						
+						 serverMsg = Utils.getCurrentTime() + " new client nr - " + i;
+						System.out.println(serverMsg);
+						serverGUI.getTextArea().append(serverMsg +  Utils.NEWLINE);
+						
 						break;
 					}
 				}
@@ -75,9 +72,8 @@ public class MainListener
 
 	}
 
-	public static String getCurrentTime()
+	public static void main(String[] args)
 	{
-		return new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+		new MainListener();
 	}
-
 }
