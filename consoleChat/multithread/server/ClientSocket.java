@@ -4,44 +4,35 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
-/*
- * The chat client thread. This client thread opens the input and the output
- * streams for a particular client, ask the client's name, informs all the
- * clients connected to the server about the fact that a new client has joined
- * the chat room, and as long as it receive data, echos that data back to all
- * other clients. The thread broadcast the incoming messages to all clients and
- * routes the private message to the particular client. When a client leaves the
- * chat room this thread informs also all the clients about that and terminates.
- */
-class ClientThread extends Thread
+class ClientSocket extends Thread
 {
 
 	private String clientName = null;
 	private DataInputStream is = null;
 	private PrintStream os = null;
 	private Socket clientSocket = null;
-	private final ClientThread[] threads;
+	private final ClientSocket[] threads;
 	private int maxClientsCount;
 
-	public ClientThread(Socket clientSocket, ClientThread[] threads)
+	public ClientSocket(Socket clientSocket, ClientSocket[] threads)
 	{
 		this.clientSocket = clientSocket;
 		this.threads = threads;
 		maxClientsCount = threads.length;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void run()
 	{
 		int maxClientsCount = this.maxClientsCount;
-		ClientThread[] threads = this.threads;
+		ClientSocket[] threads = this.threads;
 
 		try
 		{
-			/*
-			 * Create input and output streams for this client.
-			 */
 			is = new DataInputStream(clientSocket.getInputStream());
 			os = new PrintStream(clientSocket.getOutputStream());
 			String name;
@@ -59,8 +50,9 @@ class ClientThread extends Thread
 				}
 			}
 
-			/* Welcome the new the client. */
 			os.println("Welcome " + name + " to our chat room.\nTo leave enter /quit in a new line.");
+			System.out.println(Utils.getCurrentTime() + " "+ "new user (" + name + ")");
+			
 			synchronized (this)
 			{
 				for (int i = 0; i < maxClientsCount; i++)
@@ -76,11 +68,10 @@ class ClientThread extends Thread
 					if (threads[i] != null && threads[i] != this)
 					{
 						threads[i].os.println("*** A new user " + name + " entered the chat room !!! ***");
-						System.out.println("test");
 					}
 				}
 			}
-			/* Start the conversation. */
+
 			while (true)
 			{
 				String line = is.readLine();
@@ -88,8 +79,8 @@ class ClientThread extends Thread
 				{
 					break;
 				}
-				/* If the message is private sent it to the given client. */
-				if (line.startsWith("@"))
+
+				if (line.startsWith("@")) // If the message is private sent it to the given client.
 				{
 					String[] words = line.split("\\s", 2);
 					if (words.length > 1 && words[1] != null)
@@ -104,10 +95,10 @@ class ClientThread extends Thread
 									if (threads[i] != null && threads[i] != this && threads[i].clientName != null && threads[i].clientName.equals(words[0]))
 									{
 										threads[i].os.println("<" + name + "> " + words[1]);
-										/*
-										 * Echo this message to let the client know the private message was sent.
-										 */
-										this.os.println(">" + name + "> " + words[1]);
+
+										this.os.println(">" + name + "> " + words[1]); // Echo this message to let the
+																						// client know the private
+																						// message was sent.
 										break;
 									}
 								}
@@ -115,9 +106,8 @@ class ClientThread extends Thread
 						}
 					}
 				}
-				else
+				else // The message is public, broadcast it to all other clients.
 				{
-					/* The message is public, broadcast it to all other clients. */
 					synchronized (this)
 					{
 						for (int i = 0; i < maxClientsCount; i++)
@@ -125,8 +115,10 @@ class ClientThread extends Thread
 							if (threads[i] != null && threads[i].clientName != null)
 							{
 								threads[i].os.println("<" + name + "> " + line);
+								System.out.println(Utils.getCurrentTime() + " ("+ name + ") msg = " + line);
 							}
 						}
+						System.out.println("-----------------------------------");
 					}
 				}
 			}
@@ -142,9 +134,6 @@ class ClientThread extends Thread
 			}
 			os.println("*** Bye " + name + " ***");
 
-			/*
-			 * Clean up. Set the current thread variable to null so that a new client could be accepted by the server.
-			 */
 			synchronized (this)
 			{
 				for (int i = 0; i < maxClientsCount; i++)
@@ -155,9 +144,7 @@ class ClientThread extends Thread
 					}
 				}
 			}
-			/*
-			 * Close the output stream, close the input stream, close the socket.
-			 */
+			
 			is.close();
 			os.close();
 			clientSocket.close();
