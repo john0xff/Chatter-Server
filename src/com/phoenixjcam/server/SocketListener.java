@@ -21,9 +21,13 @@ public class SocketListener
 	public SocketListener()
 	{
 		serverGUI = new ServerGUI();
-		String givenPort = JOptionPane.showInputDialog(serverGUI.getFrame(), "Type port (9002) or similar", 9002);
-
-		int port = Integer.valueOf(givenPort);
+		
+		
+//		String givenPort = JOptionPane.showInputDialog(serverGUI.getFrame(), "Type port (9002) or similar", 9002);
+//
+//		int port = Integer.valueOf(givenPort);
+		
+		int port = 9002;
 
 		try
 		{
@@ -36,14 +40,16 @@ public class SocketListener
 
 		serverClients = new ServerClients[maxClients];
 
-		printServerMsg(Utils.getCurrentTime() + " before accepting" + " server port = " + port);
+		Utils.printServerMsg(Utils.getCurrentTime() + " before accepting" + " server port = " + port, serverGUI);
 
 		while (true)
 		{
 			try
 			{
+				// block until new client connection
 				clientSocket = serverSocket.accept();
-				printServerMsg(Utils.getCurrentTime() + " accepted");
+				
+				Utils.printServerMsg(Utils.getCurrentTime() + " accepted", serverGUI);
 
 				for (int i = 0; i < maxClients; i++)
 				{
@@ -52,7 +58,7 @@ public class SocketListener
 						(serverClients[i] = new ServerClients(clientSocket, serverClients)).start();
 						serverClients[i].updateServerGUI(serverGUI);
 
-						printServerMsg(Utils.getCurrentTime() + " new client nr - " + i);
+						Utils.printServerMsg(Utils.getCurrentTime() + " new client nr - " + i, serverGUI);
 
 						break;
 					}
@@ -67,11 +73,6 @@ public class SocketListener
 
 	}
 
-	// print msg in console and in gui for debug mode
-	private void printServerMsg(String serverMsg)
-	{
-		System.out.println(serverMsg);
-		serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
-	}
+	
 
 }
