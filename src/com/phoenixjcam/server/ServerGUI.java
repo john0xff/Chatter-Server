@@ -16,7 +16,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
-import javax.swing.text.DefaultCaret;
 
 public class ServerGUI
 {
@@ -36,14 +35,11 @@ public class ServerGUI
 		// frame.add(userText, BorderLayout.NORTH);
 
 		textArea = new JTextArea();
-		//textArea.setFont(new Font("Arial", 0, 20));
+		textArea.setFont(new Font("Arial", 0, 20));
 
 
 		createPopupMenu();
 		scrollPane = new JScrollPane(textArea);
-		
-		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
-		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
 		frame.add(scrollPane, BorderLayout.CENTER);
 

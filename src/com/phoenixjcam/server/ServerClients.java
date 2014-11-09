@@ -54,10 +54,7 @@ public class ServerClients extends Thread
 
 				// welcome new user
 				objectOutputStream.writeObject("Welcome " + name + " in our chat room");
-
-				Utils.printServerMsg("new user - " + name, serverGUI);
-
-				// serverGUI.getTextArea().append("new user - " + name + Utils.NEWLINE); // update server frame
+				serverGUI.getTextArea().append("new user - " + name + Utils.NEWLINE); // update server frame
 
 				synchronized (this)
 				{
@@ -104,16 +101,12 @@ public class ServerClients extends Thread
 							if (this.serverClients[i] != null && this.serverClients[i].clientName != null)
 							{
 								this.serverClients[i].objectOutputStream.writeObject("<" + name + "> " + clientMsg);
-								Utils.printServerMsg(name + ": " + clientMsg, serverGUI);
-								
-								//serverGUI.getTextArea().append(name + ": " + clientMsg + Utils.NEWLINE); // update
+								serverGUI.getTextArea().append(name + ": " + clientMsg + Utils.NEWLINE); // update
 																											// server
 																											// frame
 							}
 						}
-						Utils.printServerMsg("--------------------------------------------" , serverGUI);
-						
-						//serverGUI.getTextArea().append("--------------------------------------------" + Utils.NEWLINE);
+						serverGUI.getTextArea().append("--------------------------------------------" + Utils.NEWLINE);
 					}
 				}
 				// in case if user close window without saying BYE || END
@@ -167,11 +160,6 @@ public class ServerClients extends Thread
 			closeSocket();
 		}
 
-	}
-	
-	private void broadcastMessage()
-	{
-		
 	}
 
 	private void shutdownStreams()
