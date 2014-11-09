@@ -112,6 +112,7 @@ public class ServerClients extends Thread
 							}
 						}
 						Utils.printServerMsg("--------------------------------------------" , serverGUI);
+						
 						//serverGUI.getTextArea().append("--------------------------------------------" + Utils.NEWLINE);
 					}
 				}
