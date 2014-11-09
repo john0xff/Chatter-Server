@@ -1,4 +1,4 @@
-package com.phoenixjcam.application.server;
+package com.phoenixjcam.server;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -40,7 +40,7 @@ public class ServerClients extends Thread
 			// setup streams for new client
 			objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 			objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
-			
+
 			try
 			{
 				// wait for name
@@ -106,7 +106,7 @@ public class ServerClients extends Thread
 																											// frame
 							}
 						}
-						serverGUI.getTextArea().append("--------------------------------------------" + Utils.NEWLINE); 
+						serverGUI.getTextArea().append("--------------------------------------------" + Utils.NEWLINE);
 					}
 				}
 				// in case if user close window without saying BYE || END

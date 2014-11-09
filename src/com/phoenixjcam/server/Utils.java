@@ -1,4 +1,4 @@
-package com.phoenixjcam.application.server;
+package com.phoenixjcam.server;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

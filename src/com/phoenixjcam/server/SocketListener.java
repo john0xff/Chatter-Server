@@ -1,4 +1,4 @@
-package com.phoenixjcam.application.server;
+package com.phoenixjcam.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -6,7 +6,7 @@ import java.net.Socket;
 
 import javax.swing.JOptionPane;
 
-public class MainListener
+public class SocketListener
 {
 	private ServerGUI serverGUI;
 
@@ -15,13 +15,13 @@ public class MainListener
 
 	private static ServerSocket serverSocket;
 	private static final int maxClients = 5;
-	
+
 	private String serverMsg;
 
-	public MainListener()
+	public SocketListener()
 	{
 		serverGUI = new ServerGUI();
-		String givenPort = JOptionPane.showInputDialog(serverGUI.getFrame(), "Type port (9002) or similar");
+		String givenPort = JOptionPane.showInputDialog(serverGUI.getFrame(), "Type port (9002) or similar", 9002);
 
 		int port = Integer.valueOf(givenPort);
 
@@ -36,21 +36,14 @@ public class MainListener
 
 		serverClients = new ServerClients[maxClients];
 
-		serverMsg = Utils.getCurrentTime() + " before accepting" + " server port = " + port;
-		System.out.println(serverMsg);
-		serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
+		printServerMsg(Utils.getCurrentTime() + " before accepting" + " server port = " + port);
 
-		
-		
 		while (true)
 		{
 			try
 			{
 				clientSocket = serverSocket.accept();
-
-				serverMsg = Utils.getCurrentTime() + " accepted";
-				System.out.println(serverMsg);
-				serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
+				printServerMsg(Utils.getCurrentTime() + " accepted");
 
 				for (int i = 0; i < maxClients; i++)
 				{
@@ -58,11 +51,9 @@ public class MainListener
 					{
 						(serverClients[i] = new ServerClients(clientSocket, serverClients)).start();
 						serverClients[i].updateServerGUI(serverGUI);
-						
-						 serverMsg = Utils.getCurrentTime() + " new client nr - " + i;
-						System.out.println(serverMsg);
-						serverGUI.getTextArea().append(serverMsg +  Utils.NEWLINE);
-						
+
+						printServerMsg(Utils.getCurrentTime() + " new client nr - " + i);
+
 						break;
 					}
 				}
@@ -76,8 +67,11 @@ public class MainListener
 
 	}
 
-	public static void main(String[] args)
+	// print msg in console and in gui for debug mode
+	private void printServerMsg(String serverMsg)
 	{
-		new MainListener();
+		System.out.println(serverMsg);
+		serverGUI.getTextArea().append(serverMsg + Utils.NEWLINE);
 	}
+
 }
