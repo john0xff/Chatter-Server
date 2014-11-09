@@ -16,6 +16,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.text.DefaultCaret;
 
 public class ServerGUI
 {
@@ -40,6 +41,9 @@ public class ServerGUI
 
 		createPopupMenu();
 		scrollPane = new JScrollPane(textArea);
+		
+		DefaultCaret caret = (DefaultCaret)textArea.getCaret();
+		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
 		frame.add(scrollPane, BorderLayout.CENTER);
 
